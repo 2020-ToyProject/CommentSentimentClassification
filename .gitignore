@@ -1,5 +1,6 @@
 # chromedriver path
-libnative/chromedriver*
+libnative/chromedriver.exe
+libnative/chromedriver
 data/
 # Byte-compiled / optimized / DLL files
 __pycache__/
