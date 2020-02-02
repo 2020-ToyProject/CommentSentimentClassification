@@ -10,10 +10,10 @@ driver = webdriver.Chrome("./libnative/chromedriver")
 try:
     urls = []
 
-    for idx in range(0, 1):
-        print(idx)
+    for idx in range(0, 5):
         url = 'http://browse.auction.co.kr/search?keyword=%eb%8b%ad%ea%b0%80%ec%8a%b4%ec%82%b4&itemno=&nickname=&frm=hometab&dom=auction&isSuggestion=No&retry=&Fwk=%eb%8b%ad%ea%b0%80%ec%8a%b4%ec%82%b4&acode=SRP_SU_0100&arraycategory=&encKeyword=%eb%8b%ad%ea%b0%80%ec%8a%b4%ec%82%b4&s=8&k=0&p={0}'.format(idx)
         driver.get(url)
+        print(url)
         time.sleep(5)
         # 아이템 리스트 XPath
         elements = driver.find_elements_by_xpath('//span[@class="text--itemcard_title ellipsis"]')
@@ -43,46 +43,55 @@ try:
         time.sleep(1)
 
         for x in range(10):
-            reviews = driver.find_elements_by_xpath("//ul[@class='list__review']/li[@class='list-item']")
-            for review in reviews:
-                commentId = review.get_attribute("id")
-                box_info = review.find_element_by_xpath(
-                    "./div[@class='box__review-item']/div[@class='box__content']/div[@class='box__info']")
+            try:
+                reviews = driver.find_elements_by_xpath("//ul[@class='list__review']/li[@class='list-item']")
+                for review in reviews:
+                    try:
 
-                # 이용자 평점 x점
-                star = box_info.find_element_by_xpath("./div[@class='box__star']").text
-                m = re.search("[0-9]", star)
-                star = m.group(0)
+                        commentId = review.get_attribute("id")
+                        box_info = review.find_element_by_xpath(
+                            "./div[@class='box__review-item']/div[@class='box__content']/div[@class='box__info']")
 
-                writer = box_info.find_element_by_xpath("./p[@class='text__writer']").text
-                date = box_info.find_element_by_xpath("./p[@class='text__date']").text
-                comment = ""
-                try:
-                    comment = review.find_element_by_xpath(
-                        "./div[@class='box__review-item']/div[@class='box__content']/div[@class='box__review-text']").text
-                except Exception as e:
-                    continue
+                        # 이용자 평점 x점
+                        star = box_info.find_element_by_xpath("./div[@class='box__star']").text
+                        m = re.search("[0-9]", star)
+                        star = m.group(0)
 
-                item = {
-                    "url" : url,
-                    "product_title" : title,
-                    "product_id" : productId,
-                    "date" : date,
-                    "comment_id" : commentId,
-                    "comment_content" : comment,
-                    "rating" : star
-                }
+                        writer = box_info.find_element_by_xpath("./p[@class='text__writer']").text
+                        date = box_info.find_element_by_xpath("./p[@class='text__date']").text
+                        comment = ""
+                        try:
+                            comment = review.find_element_by_xpath(
+                                "./div[@class='box__review-item']/div[@class='box__content']/div[@class='box__review-text']").text
+                        except Exception as e:
+                            continue
 
-                with open("./data/auctionComment.json", "a", encoding="utf-8") as fp:
-                    json.dump(item, fp, ensure_ascii=False)
+                        item = {
+                            "url" : url,
+                            "product_title" : title,
+                            "product_id" : productId,
+                            "date" : date,
+                            "comment_id" : commentId,
+                            "comment_content" : comment,
+                            "rating" : star
+                        }
+
+                        with open("./data/auctionComment.json", "a", encoding="utf-8") as fp:
+                            json.dump(item, fp, ensure_ascii=False)
+                            fp.write("\n")
+                    except Exception as e:
+                        print(e)
+                # next button
+                driver.find_element_by_xpath(
+                            "//div[@class='box__pagination']//a[@class='link__page-move link__page-next']").click()
+            except Exception as e:
+                print(e)
+
+                    #print(
+                    #    "url={0}, productId={1}, productTitle={2}, commentId={3}, star={4}, writer={5}, date={6}, comment={7}".format(
+                    #        url, productId, title, commentId, star, writer, date, comment))
 
 
-                #print(
-                #    "url={0}, productId={1}, productTitle={2}, commentId={3}, star={4}, writer={5}, date={6}, comment={7}".format(
-                #        url, productId, title, commentId, star, writer, date, comment))
-
-            # next button
-            driver.find_element_by_xpath("//div[@class='box__pagination']//a[@class='link__page-move link__page-next']").click()
 
 except Exception as e:
     print(e)
