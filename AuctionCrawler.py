@@ -1,8 +1,12 @@
 from selenium import webdriver
+import re
+import json
+
 from selenium.webdriver.common.by import By
 import time
 
-driver = webdriver.Chrome("./libnative/chromedriver.exe")
+driver = webdriver.Chrome("./libnative/chromedriver")
+#driver = webdriver.Chrome("./libnative/chromedriver.exe")
 try:
     urls = []
 
@@ -24,6 +28,12 @@ try:
         driver.get(url)
         time.sleep(3)
 
+        # 아이템 제목
+        title = driver.find_element_by_xpath("//h1[@class='itemtit']/span[@class='text__item-title']").text
+
+        # ProductID
+        productId = re.sub(r".*itemno=", "", url)
+
         # 구매후기 클릭
         driver.find_element_by_xpath('//li[@id="tap_moving_2"]/a').click()
         time.sleep(1)
@@ -32,22 +42,47 @@ try:
         driver.find_element_by_xpath("//li[@class='list-item']/a[@class='link js-link']").click()
         time.sleep(1)
 
-        reviews = driver.find_elements_by_xpath("//ul[@class='list__review']/li[@class='list-item']")
-        for review in reviews:
-            productId = review.get_attribute("id")
-            box_info = review.find_element_by_xpath(
-                "./div[@class='box__review-item']/div[@class='box__content']/div[@class='box__info']")
-            star = box_info.find_element_by_xpath("./div[@class='box__star']").text
-            writer = box_info.find_element_by_xpath("./p[@class='text__writer']").text
-            date = box_info.find_element_by_xpath("./p[@class='text__date']").text
-            content = ""
-            try:
-                content = review.find_element_by_xpath(
-                    "./div[@class='box__review-item']/div[@class='box__content']/div[@class='box__review-text']").text
-            except Exception as e:
-                print(e)
+        for x in range(10):
+            reviews = driver.find_elements_by_xpath("//ul[@class='list__review']/li[@class='list-item']")
+            for review in reviews:
+                commentId = review.get_attribute("id")
+                box_info = review.find_element_by_xpath(
+                    "./div[@class='box__review-item']/div[@class='box__content']/div[@class='box__info']")
 
-            print("productId={0}, star ={1}, writer={2}, date={3}, content = {4}".format(productId, star, writer, date, content))
+                # 이용자 평점 x점
+                star = box_info.find_element_by_xpath("./div[@class='box__star']").text
+                m = re.search("[0-9]", star)
+                star = m.group(0)
+
+                writer = box_info.find_element_by_xpath("./p[@class='text__writer']").text
+                date = box_info.find_element_by_xpath("./p[@class='text__date']").text
+                comment = ""
+                try:
+                    comment = review.find_element_by_xpath(
+                        "./div[@class='box__review-item']/div[@class='box__content']/div[@class='box__review-text']").text
+                except Exception as e:
+                    continue
+
+                item = {
+                    "url" : url,
+                    "product_title" : title,
+                    "product_id" : productId,
+                    "date" : date,
+                    "comment_id" : commentId,
+                    "comment_content" : comment,
+                    "rating" : star
+                }
+
+                with open("./data/auctionComment.json", "a", encoding="utf-8") as fp:
+                    json.dump(item, fp, ensure_ascii=False)
+
+
+                #print(
+                #    "url={0}, productId={1}, productTitle={2}, commentId={3}, star={4}, writer={5}, date={6}, comment={7}".format(
+                #        url, productId, title, commentId, star, writer, date, comment))
+
+            # next button
+            driver.find_element_by_xpath("//div[@class='box__pagination']//a[@class='link__page-move link__page-next']").click()
 
 except Exception as e:
     print(e)
