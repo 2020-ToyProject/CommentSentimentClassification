@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import UnexpectedAlertPresentException
 from selenium.common.exceptions import StaleElementReferenceException
 import time
-import logging
+import logging.handlers
 import traceback
 import json
 
@@ -17,7 +17,7 @@ FILE_NAME = './data/coopang_earphone_comments.txt'
 #logger instance
 logger = logging.getLogger(__name__)
 streamHandler = logging.StreamHandler()
-fileHandler = logging.FileHandler('./logs/crawler.log')
+fileHandler = logging.handlers.RotatingFileHandler('./logs/crawler.log', maxBytes=1024 * 1024 * 10, backupCount=10)
 logger.addHandler(streamHandler)
 logger.addHandler(fileHandler)
 logger.setLevel(level=logging.DEBUG)
@@ -90,7 +90,7 @@ try:
                                 review['comment_content'] = reviewTag.find_element(By.CSS_SELECTOR,
                                                                                    '.sdp-review__article__list__review__content.js_reviewArticleContent').text
 
-                            print(review)
+                            logger.info(review)
                             json.dump(review, file, ensure_ascii=False)
                             file.write('\n')
                 except UnexpectedAlertPresentException:
