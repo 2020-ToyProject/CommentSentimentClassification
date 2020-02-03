@@ -3,6 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import UnexpectedAlertPresentException
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import ElementNotInteractableException
 import time
 import logging.handlers
 import traceback
@@ -53,7 +54,7 @@ try:
 
             time.sleep(2)
             driver.find_element(By.XPATH, '//*[@id="btfTab"]/ul[1]/li[2]').click()
-            time.sleep(2)
+            time.sleep(3)
 
             prodInfo = {
                 'product_id': productId,
@@ -61,10 +62,19 @@ try:
                 'product_title': driver.find_element(By.CLASS_NAME, 'prod-buy-header__title').text
             }
 
-            driver.find_element(By.CSS_SELECTOR, '.sdp-review__article__order__sort__newest-btn.js_reviewArticleNewListBtn.js_reviewArticleSortBtn').click()
+            try:
+                driver.find_element(By.CSS_SELECTOR, '.sdp-review__article__order__sort__newest-btn.js_reviewArticleNewListBtn.js_reviewArticleSortBtn').click()
+            except UnexpectedAlertPresentException:
+                continue
+            except ElementNotInteractableException:
+                continue
+
+            currCommPageIdx = 0
 
             while True:
                 try:
+                    currCommPageIdx += 1
+
                     time.sleep(2)
                     reviewList = driver.find_elements(By.CSS_SELECTOR,
                                                       '.sdp-review__article__list.js_reviewArticleReviewList')
@@ -95,8 +105,7 @@ try:
                             file.write('\n')
                 except UnexpectedAlertPresentException:
                     #댓글 페이지 로드 실패시 alert창 제거
-                    #alert = driver.switch_to.alert
-                    #alert.accept()
+                    driver.alert.accept()
 
                     logger.error(traceback.format_exc())
                     driver.find_elements(By.CLASS_NAME, 'sdp-review__article__page__num')[
@@ -106,15 +115,16 @@ try:
                     #element 값 load 오류시 다시 진행
                     logger.error(traceback.format_exc())
                     continue
+                except Exception:
+                    break
 
-                currCommPageIdx = driver.find_element(By.CSS_SELECTOR,
-                                                      '.sdp-review__article__page.js_reviewArticlePagingContainer').get_attribute(
-                    'data-page')
+                if len(driver.find_elements(By.CSS_SELECTOR, '.sdp-review__article__page.js_reviewArticlePagingContainer')) == 0:
+                    break;
+
                 endCommPageIdx = driver.find_element(By.CSS_SELECTOR,
                                                      '.sdp-review__article__page.js_reviewArticlePagingContainer').get_attribute(
                     'data-end')
                 pageNextIsEnabled = driver.find_element(By.CLASS_NAME, 'js_reviewArticlePageNextBtn').is_enabled()
-                currCommPageIdx = int(currCommPageIdx)
                 endCommPageIdx = int(endCommPageIdx)
 
                 if currCommPageIdx >= COMMENTS_PAGE_MAX_SIZE or (
