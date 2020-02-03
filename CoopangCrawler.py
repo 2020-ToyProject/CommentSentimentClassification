@@ -95,13 +95,16 @@ try:
                             file.write('\n')
                 except UnexpectedAlertPresentException:
                     #댓글 페이지 로드 실패시 alert창 제거
-                    alert = driver.switch_to.alert
-                    alert.accept()
+                    #alert = driver.switch_to.alert
+                    #alert.accept()
+
+                    logger.error(traceback.format_exc())
                     driver.find_elements(By.CLASS_NAME, 'sdp-review__article__page__num')[
                         (currCommPageIdx % 10)].click()
                     continue
                 except StaleElementReferenceException:
                     #element 값 load 오류시 다시 진행
+                    logger.error(traceback.format_exc())
                     continue
 
                 currCommPageIdx = driver.find_element(By.CSS_SELECTOR,
