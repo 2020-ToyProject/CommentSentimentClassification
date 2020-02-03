@@ -104,9 +104,6 @@ try:
                             json.dump(review, file, ensure_ascii=False)
                             file.write('\n')
                 except UnexpectedAlertPresentException:
-                    #댓글 페이지 로드 실패시 alert창 제거
-                    driver.alert.accept()
-
                     logger.error(traceback.format_exc())
                     driver.find_elements(By.CLASS_NAME, 'sdp-review__article__page__num')[
                         (currCommPageIdx % 10)].click()
