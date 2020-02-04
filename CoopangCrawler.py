@@ -10,9 +10,9 @@ import traceback
 import json
 
 KEYWORD = '이어폰'
-PAGE_MAX_SIZE = 2
+PAGE_MAX_SIZE = 3
 DOCS_PER_PAGE = 72
-COMMENTS_PAGE_MAX_SIZE = 20
+COMMENTS_PAGE_MAX_SIZE = 50
 FILE_NAME = './data/coopang_earphone_comments.txt'
 
 #logger instance
@@ -131,6 +131,8 @@ try:
                     driver.find_element(By.CSS_SELECTOR,
                                         '.sdp-review__article__page__next.js_reviewArticlePageNextBtn').click()
                 else:
+                    if len(driver.find_elements(By.CLASS_NAME, 'sdp-review__article__page__num')) < ((currCommPageIdx % 10) + 1) :
+                        break;
                     driver.find_elements(By.CLASS_NAME, 'sdp-review__article__page__num')[
                         (currCommPageIdx % 10)].click()
 except Exception:
