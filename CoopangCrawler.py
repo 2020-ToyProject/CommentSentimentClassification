@@ -78,7 +78,7 @@ try:
                     time.sleep(2)
                     reviewList = driver.find_elements(By.CSS_SELECTOR,
                                                       '.sdp-review__article__list.js_reviewArticleReviewList')
-                    time.sleep(5)
+                    time.sleep(4)
 
                     for reviewTag in reviewList:
                             review = prodInfo.copy()
@@ -100,9 +100,35 @@ try:
                                 review['comment_content'] = reviewTag.find_element(By.CSS_SELECTOR,
                                                                                    '.sdp-review__article__list__review__content.js_reviewArticleContent').text
 
-                            logger.info(review)
+                            #logger.info(review)
                             json.dump(review, file, ensure_ascii=False)
                             file.write('\n')
+
+                    if len(driver.find_elements(By.CSS_SELECTOR,
+                                                '.sdp-review__article__page.js_reviewArticlePagingContainer')) == 0:
+                        break;
+
+                    endCommPageIdx = driver.find_element(By.CSS_SELECTOR,
+                                                         '.sdp-review__article__page.js_reviewArticlePagingContainer').get_attribute(
+                        'data-end')
+                    pageNextIsEnabled = driver.find_element(By.CLASS_NAME, 'js_reviewArticlePageNextBtn').is_enabled()
+                    endCommPageIdx = int(endCommPageIdx)
+
+                    print(currCommPageIdx)
+                    print(endCommPageIdx)
+
+                    if currCommPageIdx >= COMMENTS_PAGE_MAX_SIZE or (
+                            currCommPageIdx == endCommPageIdx and not pageNextIsEnabled):
+                        break
+                    elif currCommPageIdx % 10 == 0:
+                        driver.find_element(By.CSS_SELECTOR,
+                                            '.sdp-review__article__page__next.js_reviewArticlePageNextBtn').click()
+                    else:
+                        if len(driver.find_elements(By.CLASS_NAME, 'sdp-review__article__page__num')) < (
+                                (currCommPageIdx % 10) + 1):
+                            break;
+                        driver.find_elements(By.CLASS_NAME, 'sdp-review__article__page__num')[
+                            (currCommPageIdx % 10)].click()
                 except UnexpectedAlertPresentException:
                     logger.error(traceback.format_exc())
                     driver.find_elements(By.CLASS_NAME, 'sdp-review__article__page__num')[
@@ -113,28 +139,9 @@ try:
                     logger.error(traceback.format_exc())
                     continue
                 except Exception:
+                    logger.error(traceback.format_exc())
                     break
 
-                if len(driver.find_elements(By.CSS_SELECTOR, '.sdp-review__article__page.js_reviewArticlePagingContainer')) == 0:
-                    break;
-
-                endCommPageIdx = driver.find_element(By.CSS_SELECTOR,
-                                                     '.sdp-review__article__page.js_reviewArticlePagingContainer').get_attribute(
-                    'data-end')
-                pageNextIsEnabled = driver.find_element(By.CLASS_NAME, 'js_reviewArticlePageNextBtn').is_enabled()
-                endCommPageIdx = int(endCommPageIdx)
-
-                if currCommPageIdx >= COMMENTS_PAGE_MAX_SIZE or (
-                        currCommPageIdx == endCommPageIdx and not pageNextIsEnabled):
-                    break
-                elif currCommPageIdx % 10 == 0:
-                    driver.find_element(By.CSS_SELECTOR,
-                                        '.sdp-review__article__page__next.js_reviewArticlePageNextBtn').click()
-                else:
-                    if len(driver.find_elements(By.CLASS_NAME, 'sdp-review__article__page__num')) < ((currCommPageIdx % 10) + 1) :
-                        break;
-                    driver.find_elements(By.CLASS_NAME, 'sdp-review__article__page__num')[
-                        (currCommPageIdx % 10)].click()
 except Exception:
     logger.error(traceback.format_exc())
 finally:
