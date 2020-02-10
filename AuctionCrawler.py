@@ -5,13 +5,17 @@ import json
 from selenium.webdriver.common.by import By
 import time
 
-driver = webdriver.Chrome("./libnative/chromedriver")
-#driver = webdriver.Chrome("./libnative/chromedriver.exe")
+#driver = webdriver.Chrome("./libnative/chromedriver")
+driver = webdriver.Chrome("./libnative/chromedriver.exe")
+
+ITEM_PAGE = 6
+COMMENT_PAGE = 20
+
 try:
     urls = []
 
-    for idx in range(0, 5):
-        url = 'http://browse.auction.co.kr/search?keyword=%eb%8b%ad%ea%b0%80%ec%8a%b4%ec%82%b4&itemno=&nickname=&frm=hometab&dom=auction&isSuggestion=No&retry=&Fwk=%eb%8b%ad%ea%b0%80%ec%8a%b4%ec%82%b4&acode=SRP_SU_0100&arraycategory=&encKeyword=%eb%8b%ad%ea%b0%80%ec%8a%b4%ec%82%b4&s=8&k=0&p={0}'.format(idx)
+    for idx in range(1, ITEM_PAGE):
+        url = 'http://browse.auction.co.kr/list?category=19040000&s=8k=0&p={0}'.format(idx)
         driver.get(url)
         print(url)
         time.sleep(5)
@@ -42,7 +46,7 @@ try:
         driver.find_element_by_xpath("//li[@class='list-item']/a[@class='link js-link']").click()
         time.sleep(1)
 
-        for x in range(10):
+        for x in range(COMMENT_PAGE):
             try:
                 reviews = driver.find_elements_by_xpath("//ul[@class='list__review']/li[@class='list-item']")
                 for review in reviews:
@@ -53,9 +57,19 @@ try:
                             "./div[@class='box__review-item']/div[@class='box__content']/div[@class='box__info']")
 
                         # 이용자 평점 x점
-                        star = box_info.find_element_by_xpath("./div[@class='box__star']").text
-                        m = re.search("[0-9]", star)
-                        star = m.group(0)
+                        star = box_info.find_element_by_xpath("./div[@class='box__star']/span[@class='sprite__vip image__star']/span[@class='sprite__vip image__star-fill']").get_attribute("style")
+                        if ("width: 0%" in star) :
+                            star = 0
+                        elif ("width: 20%" in star) :
+                            star = 1
+                        elif ("width: 40%" in star):
+                            star = 2
+                        elif ("width: 60%" in star):
+                            star = 3
+                        elif ("width: 80%" in star):
+                            star = 4
+                        elif ("width: 100%" in star):
+                            star = 5
 
                         writer = box_info.find_element_by_xpath("./p[@class='text__writer']").text
                         date = box_info.find_element_by_xpath("./p[@class='text__date']").text
@@ -76,7 +90,7 @@ try:
                             "rating" : star
                         }
 
-                        with open("./data/auctionComment.json", "a", encoding="utf-8") as fp:
+                        with open("data/auctionComment_영양제.json", "a", encoding="utf-8") as fp:
                             json.dump(item, fp, ensure_ascii=False)
                             fp.write("\n")
                     except Exception as e:
@@ -87,9 +101,9 @@ try:
             except Exception as e:
                 print(e)
 
-                    #print(
-                    #    "url={0}, productId={1}, productTitle={2}, commentId={3}, star={4}, writer={5}, date={6}, comment={7}".format(
-                    #        url, productId, title, commentId, star, writer, date, comment))
+                print(
+                       "url={0}, productId={1}, productTitle={2}, commentId={3}, star={4}, writer={5}, date={6}, comment={7}".format(
+                            url, productId, title, commentId, star, writer, date, comment))
 
 
 
