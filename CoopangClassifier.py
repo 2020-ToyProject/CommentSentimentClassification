@@ -7,13 +7,15 @@ from sklearn import metrics
 import pickle
 import time
 
-INPUT_FILE_NAME = './data/analyzed_coopang_earphone_comments_all.txt'
-OUTPUT_FILE_NAME = './model/coopang_earphone_naive_bayes.model'
-#unigram(1,1), bigram(1,2)
-NGRAM = [1, 2]
+SENTENCE_FILE_NAME = './data/analyzed_coopang_earphone_comments_all.txt'
+MODEL_FILE_NAME = './model/coopang_earphone_naive_bayes.model'
+FEATURE_FILE_NAME = './model/coopang_earphone_naive_bayes.feature'
+
+#unigram (1, 1), uni and bigram (1, 2), bigram(2,2)
+NGRAM = (2, 2)
 TARGET_NAMES = ['긍정', '부정', '중립']
 
-inputFile = open(INPUT_FILE_NAME, mode='rt', encoding='utf-8')
+inputFile = open(SENTENCE_FILE_NAME, mode='rt', encoding='utf-8')
 
 start = time.time()
 
@@ -29,18 +31,19 @@ for data in inputFile.readlines():
     labelAndData = data.split("\t")
 
     label.append(labelAndData[0])
-    sentences.append(labelAndData[1].replace(",", " "))
+    sentences.append(labelAndData[1].replace(",", " ").strip())
 
     lineIdx += 1
-
-#print(label)
-#print(sentences)
 
 #CountVectorizer를 사용하되 메모리에 로드될 데이터가 너무 큰 경우에
 #HashingVectorizer를 사용한다.
 #벡터 데이터 생성
-#ngram 적용, tokenizing은 공백단위
-vectMatrix = CountVectorizer(ngram_range=(1, 2), tokenizer=lambda x: x.split(' '), min_df=5).fit_transform(sentences)
+#ngram 적용, tokenizing은 공백단위, 형태소태그는 그대로 사용하기 위해 lowercase 미적용
+vectorizer = CountVectorizer(ngram_range=NGRAM, tokenizer=lambda x: x.split(' '),
+                             lowercase=False, min_df=5, max_features=20000)
+# vectorizer = TfidfVectorizer(ngram_range=NGRAM, tokenizer=lambda x: x.split(' '),
+#                              lowercase=False, min_df=5, max_features=20000)
+vectMatrix = vectorizer.fit_transform(sentences)
 vector = vectMatrix.toarray()
 
 #학습셋, 테스트셋 분리
@@ -55,9 +58,14 @@ classifier = MultinomialNB().fit(trainData, trainLabel)
 
 testPredition = classifier.predict(testData)
 print(metrics.classification_report(testLabel, testPredition, target_names=TARGET_NAMES))
+print(metrics.confusion_matrix(testLabel, testPredition, labels=TARGET_NAMES))
 
 #학습된 모델 객체 직렬화 파일 저장
-with open(OUTPUT_FILE_NAME, 'wb') as output:
+with open(MODEL_FILE_NAME, 'wb') as output:
     pickle.dump(classifier, output)
+
+#모델 feature 리스트 파일 저장
+with open(FEATURE_FILE_NAME, 'wb') as output:
+    pickle.dump(vectorizer.get_feature_names(), output)
 
 inputFile.close()

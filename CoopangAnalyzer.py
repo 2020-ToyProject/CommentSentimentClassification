@@ -50,8 +50,9 @@ for data in inputFile.readlines():
     analyzed = komoran.pos(text)
     selected = []
     for word, morph in analyzed:
-        if morph in SELECT_MORPH:
-            selected.append(word+'/'+morph)
+        # if morph in SELECT_MORPH:
+        #     selected.append(word+'/'+morph)
+       selected.append(word + '/' + morph)
 
     #추출된 값이 없으면 데이터 제거
     if len(selected) == 0:
@@ -69,11 +70,6 @@ for data in inputFile.readlines():
     outputFile.write(emotion + '\t')
     outputFile.write(','.join(selected))
     outputFile.write('\n')
-
-    #komoran.pos(text)
-    #hannanum.pos(text)
-    #kkma.pos(text)
-    #okt.pos(text)
 
 print("time :", time.time() - start)
 
