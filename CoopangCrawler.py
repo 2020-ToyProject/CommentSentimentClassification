@@ -14,11 +14,22 @@ PAGE_MAX_SIZE = 3
 DOCS_PER_PAGE = 72
 COMMENTS_PAGE_MAX_SIZE = 50
 FILE_NAME = './data/coopang_earphone_comments.txt'
+LOG_FILE_NAME = './logs/crawler.log'
+CHROME_PATH = './libnative/chromedriver.exe'
+PRODUCT_URL_FORMAT = 'https://www.coupang.com/vp/products/{productId}'
+SORT_BY_LATELY_BUTTON_SELECTOR = '.sdp-review__article__order__sort__newest-btn.js_reviewArticleNewListBtn.js_reviewArticleSortBtn'
+REVIEW_TAG_LIST = '.sdp-review__article__list.js_reviewArticleReviewList'
+RATING_TAG = '.sdp-review__article__list__info__product-info__star-orange.js_reviewArticleRatingValue'
+DATETIME_TAG = 'sdp-review__article__list__info__product-info__reg-date'
+REVIEW_ID_TAG = '.sdp-review__article__list__help.js_reviewArticleHelpfulContainer'
+COMMENT_TITLE_TAG = 'sdp-review__article__list__headline'
+COMMENT_CONTENT_TAG = '.sdp-review__article__list__review__content.js_reviewArticleContent'
+PAGINATION_CONTAINER_TAG = '.sdp-review__article__page.js_reviewArticlePagingContainer'
 
 #logger instance
 logger = logging.getLogger(__name__)
 streamHandler = logging.StreamHandler()
-fileHandler = logging.handlers.RotatingFileHandler('./logs/crawler.log', maxBytes=1024 * 1024 * 10, backupCount=10)
+fileHandler = logging.handlers.RotatingFileHandler(LOG_FILE_NAME, maxBytes=1024 * 1024 * 10, backupCount=10)
 logger.addHandler(streamHandler)
 logger.addHandler(fileHandler)
 logger.setLevel(level=logging.DEBUG)
@@ -30,7 +41,7 @@ options.add_argument('window-size=1920x1080')
 options.add_argument("disable-gpu")
 options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36")
 
-driver = webdriver.Chrome('./libnative/chromedriver.exe', chrome_options=options)
+driver = webdriver.Chrome(CHROME_PATH, chrome_options=options)
 driver.implicitly_wait(0)
 
 #file open
@@ -49,7 +60,7 @@ try:
             productIds.append(prodTag.get_attribute('data-product-id'))
 
         for productId in productIds :
-            prodPage = 'https://www.coupang.com/vp/products/{productId}'.format(productId=productId)
+            prodPage = PRODUCT_URL_FORMAT.format(productId=productId)
             driver.get(prodPage)
 
             time.sleep(2)
@@ -63,7 +74,7 @@ try:
             }
 
             try:
-                driver.find_element(By.CSS_SELECTOR, '.sdp-review__article__order__sort__newest-btn.js_reviewArticleNewListBtn.js_reviewArticleSortBtn').click()
+                driver.find_element(By.CSS_SELECTOR, SORT_BY_LATELY_BUTTON_SELECTOR).click()
             except UnexpectedAlertPresentException:
                 continue
             except ElementNotInteractableException:
@@ -76,40 +87,37 @@ try:
                     currCommPageIdx += 1
 
                     time.sleep(2)
-                    reviewList = driver.find_elements(By.CSS_SELECTOR,
-                                                      '.sdp-review__article__list.js_reviewArticleReviewList')
+                    reviewList = driver.find_elements(By.CSS_SELECTOR, REVIEW_TAG_LIST)
                     time.sleep(4)
 
                     for reviewTag in reviewList:
                             review = prodInfo.copy()
-                            review['rating'] = reviewTag.find_element(By.CSS_SELECTOR,
-                                                                      '.sdp-review__article__list__info__product-info__star-orange.js_reviewArticleRatingValue').get_attribute(
+                            review['rating'] = reviewTag.find_element(By.CSS_SELECTOR, RATING_TAG).get_attribute(
                                 'data-rating')
                             review['date'] = reviewTag.find_element(By.CLASS_NAME,
-                                                                    'sdp-review__article__list__info__product-info__reg-date').text
+                                                                    DATETIME_TAG).text
                             review['comment_id'] = reviewTag.find_element(By.CSS_SELECTOR,
-                                                                          '.sdp-review__article__list__help.js_reviewArticleHelpfulContainer').get_attribute(
-                                'data-review-id')
+                                                                          REVIEW_ID_TAG).get_attribute('data-review-id')
 
-                            if len(reviewTag.find_elements(By.CLASS_NAME, 'sdp-review__article__list__headline')) != 0:
+                            if len(reviewTag.find_elements(By.CLASS_NAME, COMMENT_TITLE_TAG)) != 0:
                                 review['comment_title'] = reviewTag.find_element(By.CLASS_NAME,
-                                                                                 'sdp-review__article__list__headline').text
+                                                                                 COMMENT_TITLE_TAG).text
 
                             if len(reviewTag.find_elements(By.CSS_SELECTOR,
-                                                           '.sdp-review__article__list__review__content.js_reviewArticleContent')) != 0:
+                                                           COMMENT_CONTENT_TAG)) != 0:
                                 review['comment_content'] = reviewTag.find_element(By.CSS_SELECTOR,
-                                                                                   '.sdp-review__article__list__review__content.js_reviewArticleContent').text
+                                                                                   COMMENT_CONTENT_TAG).text
 
                             #logger.info(review)
                             json.dump(review, file, ensure_ascii=False)
                             file.write('\n')
 
                     if len(driver.find_elements(By.CSS_SELECTOR,
-                                                '.sdp-review__article__page.js_reviewArticlePagingContainer')) == 0:
+                                                PAGINATION_CONTAINER_TAG)) == 0:
                         break;
 
                     endCommPageIdx = driver.find_element(By.CSS_SELECTOR,
-                                                         '.sdp-review__article__page.js_reviewArticlePagingContainer').get_attribute(
+                                                         PAGINATION_CONTAINER_TAG).get_attribute(
                         'data-end')
                     pageNextIsEnabled = driver.find_element(By.CLASS_NAME, 'js_reviewArticlePageNextBtn').is_enabled()
                     endCommPageIdx = int(endCommPageIdx)
