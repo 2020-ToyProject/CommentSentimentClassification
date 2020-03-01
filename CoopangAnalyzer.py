@@ -2,16 +2,16 @@ import json
 from konlpy.tag import *
 import time
 
-INPUT_FILE_NAME = './data/coopang_earphone_comments.txt'
-OUTPUT_FILE_NAME = './data/analyzed_coopang_earphone_comments_all.txt'
+INPUT_FILE_NAME = './data/coopang_earphone_normalized_comments.txt'
+OUTPUT_FILE_NAME = './data/analyzed_coopang_earphone_normalized_comments.txt'
 
 #일반명사, 고유명사, 동사, 형용사, 보조용언, 긍정지정사, 부정지정사, 일반부사, 접속부사
 SELECT_MORPH = {'NNG', 'NNP', 'VV', 'VA', 'VX', 'VCP', 'VCN', 'MAG', 'MAJ'}
 
 #pip install JPype1==0.7.0
-komoran = Komoran()
+# komoran = Komoran()
 # hannanum = Hannanum()
-# kkma = Kkma()
+kkma = Kkma()
 #okt = Okt()
 
 outputFile = open(OUTPUT_FILE_NAME, mode='w', encoding='utf-8')
@@ -24,9 +24,6 @@ countContentNull = 0
 countContentExist = 0
 
 for data in inputFile.readlines():
-    #if countContentExist == 1000:
-    #    break
-
     try:
         dict = json.loads(data, encoding='utf-8')
     except Exception:
@@ -47,7 +44,11 @@ for data in inputFile.readlines():
         countContentExist += 1
 
     #사용할 형태소 선택
-    analyzed = komoran.pos(text)
+    try:
+        analyzed = kkma.pos(text.replace(",", " "))
+    except Exception: #형분석시 오류 발생할 수 있음.
+        continue
+
     selected = []
     for word, morph in analyzed:
         # if morph in SELECT_MORPH:
@@ -57,18 +58,10 @@ for data in inputFile.readlines():
     #추출된 값이 없으면 데이터 제거
     if len(selected) == 0:
         continue
-        
-    #감정 태깅
-    emotion = ''
-    if dict['rating'] == '1' or dict['rating'] == '2':
-        emotion = '부정'
-    elif dict['rating'] == '3':
-        emotion = '중립'
-    else:
-        emotion = '긍정'
 
-    outputFile.write(emotion + '\t')
-    outputFile.write(','.join(selected))
+    dict['morph_result'] = ','.join(selected)
+
+    json.dump(dict, outputFile, ensure_ascii=False)
     outputFile.write('\n')
 
 print("time :", time.time() - start)

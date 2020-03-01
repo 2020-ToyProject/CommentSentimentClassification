@@ -4,15 +4,16 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn import metrics
+import json
 import pickle
 import time
 
-SENTENCE_FILE_NAME = './data/analyzed_coopang_earphone_comments_all.txt'
+SENTENCE_FILE_NAME = './data/analyzed_coopang_earphone_normalized_comments.txt'
 MODEL_FILE_NAME = './model/coopang_earphone_naive_bayes.model'
 FEATURE_FILE_NAME = './model/coopang_earphone_naive_bayes.feature'
 
 #unigram (1, 1), uni and bigram (1, 2), bigram(2,2)
-NGRAM = (2, 2)
+NGRAM = (1, 2)
 TARGET_NAMES = ['긍정', '부정', '중립']
 
 inputFile = open(SENTENCE_FILE_NAME, mode='rt', encoding='utf-8')
@@ -24,23 +25,31 @@ label = []
 #feature에 해당하는 문장 리스트
 sentences = []
 
-lineIdx = 0
-
 #학습 가능한 데이터로 전처리
 for data in inputFile.readlines():
-    labelAndData = data.split("\t")
+    try:
+        dict = json.loads(data, encoding='utf-8')
+    except Exception:
+        continue
 
-    label.append(labelAndData[0])
-    sentences.append(labelAndData[1].replace(",", " ").strip())
+    emotion = ''
 
-    lineIdx += 1
+    if dict['rating'] == '1' or dict['rating'] == '2':
+        emotion = '부정'
+    elif dict['rating'] == '3':
+        emotion = '중립'
+    else:
+        emotion = '긍정'
+
+    label.append(emotion)
+    sentences.append(dict['morph_result'])
 
 #CountVectorizer를 사용하되 메모리에 로드될 데이터가 너무 큰 경우에
 #HashingVectorizer를 사용한다.
 #벡터 데이터 생성
 #ngram 적용, tokenizing은 공백단위, 형태소태그는 그대로 사용하기 위해 lowercase 미적용
-vectorizer = CountVectorizer(ngram_range=NGRAM, tokenizer=lambda x: x.split(' '),
-                             lowercase=False, min_df=5, max_features=20000)
+vectorizer = CountVectorizer(ngram_range=NGRAM, tokenizer=lambda x: x.split(','),
+                             min_df=5, max_features=30000, lowercase=False)
 # vectorizer = TfidfVectorizer(ngram_range=NGRAM, tokenizer=lambda x: x.split(' '),
 #                              lowercase=False, min_df=5, max_features=20000)
 vectMatrix = vectorizer.fit_transform(sentences)
