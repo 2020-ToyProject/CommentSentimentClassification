@@ -1,5 +1,4 @@
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
@@ -34,29 +33,27 @@ for data in inputFile.readlines():
 
     emotion = ''
 
-    if dict['rating'] == '1' or dict['rating'] == '2':
+    if int(dict['rating']) == 1 or int(dict['rating']) == 2:
         emotion = '부정'
-    elif dict['rating'] == '3':
+    elif int(dict['rating']) == 3:
         emotion = '중립'
     else:
         emotion = '긍정'
 
     label.append(emotion)
-    sentences.append(dict['morph_result'])
+    sentences.append(' '.join(dict['morph_result']))
 
-#CountVectorizer를 사용하되 메모리에 로드될 데이터가 너무 큰 경우에
-#HashingVectorizer를 사용한다.
 #벡터 데이터 생성
 #ngram 적용, tokenizing은 공백단위, 형태소태그는 그대로 사용하기 위해 lowercase 미적용
-vectorizer = CountVectorizer(ngram_range=NGRAM, tokenizer=lambda x: x.split(','),
-                             min_df=5, max_features=30000, lowercase=False)
+vectorizer = CountVectorizer(ngram_range=NGRAM, tokenizer=lambda x: x.split(' '),
+                             min_df=5, max_features=50000, lowercase=False)
 # vectorizer = TfidfVectorizer(ngram_range=NGRAM, tokenizer=lambda x: x.split(' '),
 #                              lowercase=False, min_df=5, max_features=20000)
+
 vectMatrix = vectorizer.fit_transform(sentences)
-vector = vectMatrix.toarray()
 
 #학습셋, 테스트셋 분리
-trainData, testData, trainLabel, testLabel = train_test_split(vector, label, test_size=0.3)
+trainData, testData, trainLabel, testLabel = train_test_split(vectMatrix, label, test_size=0.3)
 
 #학습셋으로 K fold validating
 accuracys = cross_val_score(MultinomialNB(), trainData, trainLabel, cv=6, scoring='accuracy')

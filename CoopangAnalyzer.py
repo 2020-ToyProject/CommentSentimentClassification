@@ -2,8 +2,8 @@ import json
 from konlpy.tag import *
 import time
 
-INPUT_FILE_NAME = './data/coopang_earphone_normalized_comments.txt'
-OUTPUT_FILE_NAME = './data/analyzed_coopang_earphone_normalized_comments.txt'
+INPUT_FILE_NAME = './data/coopang_curtain_normalized_comments.txt'
+OUTPUT_FILE_NAME = './data/analyzed_coopang_curtain_normalized_comments.txt'
 
 #일반명사, 고유명사, 동사, 형용사, 보조용언, 긍정지정사, 부정지정사, 일반부사, 접속부사
 SELECT_MORPH = {'NNG', 'NNP', 'VV', 'VA', 'VX', 'VCP', 'VCN', 'MAG', 'MAJ'}
@@ -59,7 +59,7 @@ for data in inputFile.readlines():
     if len(selected) == 0:
         continue
 
-    dict['morph_result'] = ','.join(selected)
+    dict['morph_result'] = selected
 
     json.dump(dict, outputFile, ensure_ascii=False)
     outputFile.write('\n')
