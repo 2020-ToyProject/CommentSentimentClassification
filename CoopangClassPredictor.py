@@ -7,7 +7,7 @@ MODEL_FILE_NAME = './model/coopang_earphone_naive_bayes.model'
 FEATURE_FILE_NAME = './model/coopang_earphone_naive_bayes.feature'
 
 #unigram (1, 1), uni and bigram (1, 2), bigram(2,2)
-NGRAM = (2, 2)
+NGRAM = (1, 2)
 
 #CountVectorizer ngrams 함수만 가져옴.
 def _word_ngrams(ngram_range, tokens, stop_words=None):
@@ -69,7 +69,7 @@ while True:
     #document term array
     sentFeatures = np.zeros(shape=(1, len(features)))
 
-    selected = _word_ngrams((1, 2), selected)
+    selected = _word_ngrams(NGRAM, selected)
 
     for token in selected:
         featIdx = features.index(token) if token in features else -1
