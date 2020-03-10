@@ -24,8 +24,8 @@
 3. 모델 학습 시간이 빨라 프로젝트 일정 진행에 용이함.
 4. 학습 데이터 양이 많지 않아도 성능이 좋음.
 
-실제로 모델 평가와 분류기 생성에 사용한 모델은 svm과 naive 베이지안이다.   
+실제로 모델 평가와 분류기 생성에 사용한 모델은 svm과 naive bayes이다.   
 
 ## ○ 참고문서
 * [커널형 svm](https://datascienceschool.net/view-notebook/69278a5de79449019ad1f51a614ef87c/)
-* [naive bayse](https://datascienceschool.net/view-notebook/c19b48e3c7b048668f2bb0a113bd25f7/)
+* [naive bayes](https://datascienceschool.net/view-notebook/c19b48e3c7b048668f2bb0a113bd25f7/)
