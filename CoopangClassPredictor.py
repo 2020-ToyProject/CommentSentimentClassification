@@ -77,5 +77,5 @@ while True:
         if featIdx != -1:
             sentFeatures[0][featIdx] += 1
 
-    print(sentFeatures[0])
+    #print(sentFeatures[0])
     print(classifier.predict(sentFeatures))

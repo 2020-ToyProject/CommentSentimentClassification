@@ -10,9 +10,9 @@ from sklearn import metrics
 from sklearn.model_selection import GridSearchCV
 # from sklearn.metrics import accuracy_score
 OUTPUT_FILE_NAME = "./model/11stBestModel.model"
+FEATURE_FILE_NAME = "./model/11stBestModel.feature"
 TARGET_NAMES = ['긍정', '부정', '중립']
-dirname2 = ('./data/강아지간식_분석')
-dirname = ('./data/물티슈_분석')
+dirname = ('./data/물티슈')
 sentenceFileList = os.listdir(dirname)
 sentenceArr = []
 labelArr = []
@@ -26,10 +26,10 @@ for sentenceFile in sentenceFileList:
         for line in lines:
             try:
                 dict = json.loads(line.rstrip())
-                sentenceArr.append(' '.join(dict['custom_result']))
-                if dict['rating']>3:
+                sentenceArr.append(' '.join(dict['morph_result']))
+                if int(dict['rating'])>3:
                     labelArr.append(TARGET_NAMES[0])
-                elif dict['rating']<3:
+                elif int(dict['rating'])<3:
                     labelArr.append(TARGET_NAMES[1])
                 else:
                     labelArr.append(TARGET_NAMES[2])
@@ -37,7 +37,7 @@ for sentenceFile in sentenceFileList:
                 print(e)
 
 # 벡터 데이터 생성
-vect = CountVectorizer(min_df=2, max_features=50000, ngram_range=(1, 3), tokenizer=lambda x: x.split(' '))
+vect = CountVectorizer(min_df=5, max_features=30000, ngram_range=(1, 2), tokenizer=lambda x: x.split(' '))
 pipeline = Pipeline([
     ('vect', vect),
 ])
@@ -75,17 +75,19 @@ clf_rbf = svm.SVC(C=10.0, kernel='rbf', gamma=0.1)
 
 # c와 gamma는 클수록 정확하고 작을수록 과대적합 방지 gamma는 결정경계의 곡률을 조정하며 rbf와 poly, sigmoid에서만 적용된다.
 param_grid = [
-    {'kernel': ['rbf'], 'gamma': [0.1, 0.5, 10, 1e-3, 1e-4], 'C': [1, 10, 100, 1000]},
-    {'kernel': ['poly'], 'gamma': [0.1, 0.5, 10, 1e-3, 1e-4], 'C': [1, 10, 100, 1000]},
-    {'kernel': ['linear'], 'C': [0.1, 1, 10, 100, 1000]}
+    {'kernel': ['rbf'], 'gamma': [1e-3], 'C': [10]},
 ]
-clf_grid = GridSearchCV(svm.SVC(), param_grid, verbose=1)
-clf_grid.fit(trainData, trainLabel)
+clf_grid = GridSearchCV(svm.SVC(), param_grid, verbose=1, n_jobs=-1)
+classifier = clf_grid.fit(trainData, trainLabel)
 result_grid = clf_grid.predict(testData)
 print("Best Parameters:\n", clf_grid.best_params_)
 print("Best Estimators:\n", clf_grid.best_estimator_)
 print(metrics.classification_report(testLabel, result_grid))
 
 #학습된 모델 객체 직렬화 파일 저장
-with open(OUTPUT_FILE_NAME, 'w') as output:
-    pickle.dump(clf_grid.best_estimator_, output)
+with open(OUTPUT_FILE_NAME, 'wb') as output:
+    pickle.dump(classifier, output)
+
+# 모델 feature 리스트 파일 저장
+with open(FEATURE_FILE_NAME, 'wb') as output:
+    pickle.dump(vect.get_feature_names(), output)
