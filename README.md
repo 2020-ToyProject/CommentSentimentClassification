@@ -1,6 +1,13 @@
 # CommentSentimentClassification
 감성분석을 통한 댓글 분류
 
+## 목차
+[1. 목표](#1.-목표)   
+[2. 수집 상품 선정 기준](#2.-수집-상품-선정-기준)   
+[3. 사용한 classification 알고리즘](#3.-사용한-classification-알고리즘)   
+[4. 사이트별 문서 수집 기준](#4.-사이트별-문서-수집-기준)   
+[5. 사용자 텍스트 입력 및 분류 테스트 ](#5.-사용자-텍스트-입력-및-분류-테스트)   
+
 ## 1. 목표
 + 온라인 쇼핑몰의 상품평에 대한 평가를 수집하여 긍/부정/중립 태깅을 자동으로 추출해주는 분류모델의 생성.   
 + 도메인별로 학습시킨 감성 분류 모델이 각 도메인에 품질이 더 좋을 것이라는 가정하에 개별 도메인 모델과 통합 도메인 모델을 비교.   
@@ -25,6 +32,39 @@
 4. 학습 데이터 양이 많지 않아도 성능이 좋음.
 
 실제로 모델 평가와 분류기 생성에 사용한 모델은 svm과 naive bayes이다.   
+
+## 4. 사이트별 문서 수집 기준   
+### 4.1 11번가
+    상품 수집 기준   
+    
+    - 키워드 검색
+    - 많은 리뷰순
+    - 일주일정도 안에 수집 가능한 최대 페이지
+![11st_product_view](./image/11st_product_view.png)
+
+    댓글 수집 기준
+    
+    - 최신 등록순
+    - 평점별 일주일정도 안에 수집 가능한 최대 페이지
+![11st_comments_view](./image/11st_comments_view.png)
+### 4.2 쿠팡
+    상품 수집 기준
+    
+    - 키워드 검색
+    - 판매량순
+    - 일주일정도 안에 수집 가능한 최대 페이지
+![11st_product_view](./image/coopang_product_view.png)
+
+    댓글 수집 기준
+    
+    - 최신순
+    - 평점별 일주일정도 안에 수집 가능한 최대 페이지
+![11st_comments_view](./image/coopang_comments_view.png)
+
+## 5. 사용자 텍스트 입력 및 분류 테스트   
+다음은 생성된 최종 분류기로 사용자 콘솔 입력시 감성 분류 예시이다.   
+   
+![class_predictor_console](./image/class_predictor_console.png)
 
 ## ○ 참고문서
 * [커널형 svm](https://datascienceschool.net/view-notebook/69278a5de79449019ad1f51a614ef87c/)
