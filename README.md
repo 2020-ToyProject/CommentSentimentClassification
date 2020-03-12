@@ -33,7 +33,7 @@
     - 키워드 검색
     - 많은 리뷰순
     - 일주일정도 안에 수집 가능한 최대 페이지
-![11st_product_view](./image/11st_product_view.png)
+![11st_product_view](image/11st_product_view.png)
 
     댓글 수집 기준
     
@@ -46,18 +46,18 @@
     - 키워드 검색
     - 판매량순
     - 일주일정도 안에 수집 가능한 최대 페이지
-![11st_product_view](./image/coopang_product_view.png)
+![11st_product_view](image/coopang_product_view.png)
 
     댓글 수집 기준
     
     - 최신순
     - 평점별 일주일정도 안에 수집 가능한 최대 페이지
-![11st_comments_view](./image/coopang_comments_view.png)
+![11st_comments_view](image/coopang_comments_view.png)
 
 ## 5. 사용자 텍스트 입력 및 분류 테스트   
 다음은 생성된 최종 분류기로 사용자 콘솔 입력시 감성 분류 예시이다.   
    
-![class_predictor_console](./image/class_predictor_console.png)
+![class_predictor_console](image/class_predictor_console.png)
 
 ## ○ 참고문서
 * [커널형 svm](https://datascienceschool.net/view-notebook/69278a5de79449019ad1f51a614ef87c/)
