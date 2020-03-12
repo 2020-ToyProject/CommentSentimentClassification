@@ -39,7 +39,7 @@
     
     - 최신 등록순
     - 평점별 일주일정도 안에 수집 가능한 최대 페이지
-![11st_comments_view](./image/11st_comments_view.png)
+![11st_comments_view](image/11st_comments_view.PNG)
 ### 4.2 쿠팡
     상품 수집 기준
     
