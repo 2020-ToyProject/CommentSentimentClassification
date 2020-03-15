@@ -54,7 +54,42 @@
     - 평점별 일주일정도 안에 수집 가능한 최대 페이지
 ![11st_comments_view](image/coopang_comments_view.PNG)
 
-## 5. 사용자 텍스트 입력 및 분류 테스트   
+## 5. 모델 평가 결과 비교
+
+### 5.1 모델 측정 방법
+accuracy : 전체 대비 정확하게 예측한 개수의 비율이다. data가 한쪽으로 편향되있을 경우 효과적이지 못하다.   
+macro avg : 각각 정답 레이블에 대한 recall(전체 대비 정확하게 예측한 비율), precision(긍정이라고 예측한 비율 중 진짜 긍정의 비율), f1(`2*recall*precision / (recall+precision)`)을 구해서 평균을 낸 것이다.   
+weighted avg : 각 클래스에 속하는 표본의 갯수로 가중평균을 낸 것이다.
+
+### 5.2 SVM + 특정 도메인(아기물티슈)
+| Label        | series        | accuracy  | macro avg | weighted avg |
+| ------------ |:-------------:|:---------:|:---------:|-------------:|
+| 선택형태소+svm(linear)+min_df(5)+max_feature(30000)+unigram/bigram | 1 | 0.88 | 0.46 | 0.87 |
+| 선택형태소+svm(rbf)+min_df(5)+max_feature(30000)+unigram/bigram | 2 |  0.9 | 0.33 | 0.86 |
+| 선택형태소+svm(rbf)+정답라벨건수평준화+자음/모음집합제거+min_df(5)+max_feature(30000)+unigram/bigram | 3 | 0.69 | 0.7 | 0.69 |
+| 전체형태소+svm(rbf)+정답라벨건수평준화+자음/모음집합제거+min_df(5)+max_feature(30000)+unigram/bigram | 4 | 0.75 | 0.75 | 0.75 |
+| 전체형태소+svm(rbf)+gamma(0.001)+C(10)+min_df(5)+max_feature(30000)+unigram/bigram | 5 | 0.8 | 0.67 | 0.78 |
+    
+2 -> 3 : data가 긍정레이블로 편향되어있던 것을 평준화시켜 macro avg 가 눈에 띄게 좋아졌다.  
+3 -> 4 : 감정에 영향이 있을 것 같은 형태소를 선택하여 학습시킨 것보다 전체 형태소로 학습시킨 결과가 좋은 것을 알 수 있었다.
+   
+   ![물티슈_svm_model](image/SVM.JPG)
+    
+### 5.3 전체 모델(Naive Bayes, SVM) + 전체 도메인(아기물티슈, 강아지간식, 이어폰, 커튼)
+| Label | series | accuracy | macro avg | weighted avg |
+| --- | --- | --- | --- | --- |
+| min_df(5)+max_feature(30000)+unigram/bigram+naïve bayes | 1 | 0.77 | 0.69 | 0.77 |
+| min_df(5)+max_feature(30000)+unigram/bigram+svm(rbf) | 2 | 0.81 | 0.72 | 0.8 |
+   
+   ![전체도메인_전체_model](image/전체_도메인.JPG)
+    
+## 6. 결론
++ data 정답 레이블 건수를 평준화 시켜서 macro avg 가 눈에 띄게 좋아졌다.
++ 선택 형태소(일반명사, 고유명사, 동사, 형용사, 긍정지정사, 부정지정사)로 평가한 것에 비해 전체 형태소로 평가한 것이 성능이 좋아졌다.
++ min_df 는 평가 결과에 크게 영향을 미치지 않았다.
++ SVM 이 Naive Bayes에 비해 전체적으로 score 가 높아서 SVM 을 최종 모델로 사용했다.
+
+## 7. 사용자 텍스트 입력 및 분류 테스트   
 다음은 생성된 최종 분류기로 사용자 콘솔 입력시 감성 분류 예시이다.   
    
 ![class_predictor_console](image/class_predictor_console.PNG)
